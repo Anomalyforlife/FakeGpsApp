@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<lint>
+    <!-- This opaque square bitmap is an inset layer inside an adaptive icon.
+         The launcher applies the outer shape; it is not a legacy square icon. -->
+    <issue id="IconLauncherShape">
+        <ignore path="src/main/res/drawable-nodpi/ic_launcher_v13_art.png" />
+    </issue>
+</lint>

@@ -1,0 +1,7 @@
+---
+name: android-build-configuration-proposal
+description: Configurazione Android confermata build11, firma persistente,77 test inclusi
+type: project
+---
+
+Finalbuild11success12ott2026 thyrlian/android-sdk:10.0 linuxamd64 JDK17 SDK35 BuildTools35.0.0 Wrapper8.11.1 AGP8.9.2. Comando utente singola riga invariato: export ANDROID_HOME="$PWD/.android-sdk" && export GRADLE_USER_HOME="$PWD/.gradle-cache" && yes | sdkmanager --sdk_root="$ANDROID_HOME" --licenses >/dev/null && sdkmanager --sdk_root="$ANDROID_HOME" "platform-tools" "platforms;android-35" "build-tools;35.0.0" && sh ./gradlew --no-daemon :app:assembleDebug. assembleDebuginclude77unit+lint0error1warningSDKlocation21.3pinnedcompatAGPlint21.4Kotlin2.3metadata; org.json20240303testdependency. Build/server soloMCPScoutSolutions; AIdefaultseparato appport/dev/startvuoti nessunserver. .signing/debug.keystorepersistenteesclusaGit NONcancellare. Cert1.3build11identico1.2build8e1.1build7, updatepreservedata. GetBuildLogIDsNotFoundanche11: verificareMCPstatus/list e reportExecutorcorrenti;11daemon168BUILD SUCCESSFUL1m30 JUnit19:22:08–09hostname dba71a86c3f7. Build10AAPTmissingiconafterresourcefoldermove risolto11toccareXMLnuovorisorsaperrecompile, no localbuild/cleanworkaround. APKapp/build/outputs/apk/debug/app-debug.apk copiarerootAnomalyGPS.apk+.sha256solodopoverificabuildcorrente, finale1.3code4. app/lint.xmlnarrowIconLauncherShapeforpngadaptive justified.

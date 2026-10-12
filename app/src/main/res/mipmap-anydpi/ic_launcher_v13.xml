@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- All supported Android versions (minSdk 26) support adaptive icons. -->
+    <background android:drawable="@color/launcher_v13_background" />
+    <foreground android:drawable="@drawable/ic_launcher_v13_foreground" />
+    <monochrome android:drawable="@drawable/ic_launcher_v13_monochrome" />
+</adaptive-icon>
