@@ -12,7 +12,7 @@ public final class MapsLink {
     }
     public static void validate(URL url) {
         if(!"https".equals(url.getProtocol())||!googleHost(url.getHost())||url.getUserInfo()!=null||(url.getPort()!=-1&&url.getPort()!=443))
-            throw new IllegalArgumentException("Incolla un link HTTPS di Google Maps (google.com, google.it o maps.app.goo.gl).");
+            throw new IllegalArgumentException("Paste a Google Maps HTTPS link (google.com, google.it or maps.app.goo.gl).");
     }
     public static boolean isFullDirections(URL url) {
         return !url.getHost().equalsIgnoreCase("maps.app.goo.gl")&&!url.getHost().equalsIgnoreCase("goo.gl")
@@ -33,8 +33,8 @@ public final class MapsLink {
             String[] segments=url.getPath().split("/",-1);boolean dir=false;
             for(String encoded:segments){String s=decode(encoded);if(!dir){if(s.equals("dir"))dir=true;continue;}if(s.startsWith("@")||s.startsWith("data="))break;if(!s.trim().isEmpty())stops.add(s);}
         }
-        if(stops.size()<2)throw new IllegalArgumentException("Questo link non espone partenza e arrivo. Condividi le indicazioni del percorso oppure inserisci le tappe qui sotto. Per la traccia esatta importa un GPX.");
-        for(String stop:stops){String s=stop.trim().toLowerCase(Locale.ROOT);if(s.isEmpty()||Arrays.asList("my location","your location","current location","posizione attuale","la tua posizione").contains(s))throw new IllegalArgumentException("Il link usa la posizione attuale come tappa. Imposta una partenza esplicita in Maps o inserisci qui le coordinate.");}
+        if(stops.size()<2)throw new IllegalArgumentException("This link does not expose the start and destination. Share route directions or enter the stops below. Import a GPX for an exact track.");
+        for(String stop:stops){String s=stop.trim().toLowerCase(Locale.ROOT);if(s.isEmpty()||Arrays.asList("my location","your location","current location","posizione attuale","la tua posizione").contains(s))throw new IllegalArgumentException("The link uses your current location as a stop. Set an explicit starting point in Maps or enter coordinates here.");}
         return stops;
     }
 }

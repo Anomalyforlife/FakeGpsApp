@@ -1,0 +1,76 @@
+name: APK release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: apk-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK
+        run: sdkmanager 'platform-tools' 'platforms;android-35' 'build-tools;35.0.0'
+
+      - name: Restore signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo '::error::Configure ANDROID_KEYSTORE_BASE64 with the existing .signing/debug.keystore.'
+            exit 1
+          fi
+          umask 077
+          mkdir -p .signing
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > .signing/debug.keystore
+          keytool -list -keystore .signing/debug.keystore -storepass android -alias androiddebugkey > /dev/null
+
+      - name: Test, lint and build release APK
+        run: sh ./gradlew --no-daemon :app:testReleaseUnitTest :app:lintRelease :app:assembleRelease
+
+      - name: Prepare release assets
+        run: |
+          mkdir -p dist
+          cp app/build/outputs/apk/release/app-release.apk dist/AnomalyGPS.apk
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose dist/AnomalyGPS.apk
+          cd dist
+          sha256sum AnomalyGPS.apk > AnomalyGPS.apk.sha256
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: build-${{ github.run_number }}-${{ github.run_attempt }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          gh release create "$RELEASE_TAG" \
+            dist/AnomalyGPS.apk dist/AnomalyGPS.apk.sha256 \
+            --target "$COMMIT_SHA" \
+            --title "Anomaly GPS — $RELEASE_TAG" \
+            --notes "Signed release APK. Commit: $COMMIT_SHA. Unit tests and Android lint passed."
+
+      - name: Remove signing key
+        if: always()
+        run: rm -f .signing/debug.keystore

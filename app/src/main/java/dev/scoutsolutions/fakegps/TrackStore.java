@@ -10,9 +10,9 @@ import org.json.JSONObject;
 public final class TrackStore {
     private static final Object LOCK = new Object();
     private final File dir;
-    public TrackStore(Context ctx) { dir = new File(ctx.getFilesDir(), "tracks"); if (!dir.exists() && !dir.mkdirs()) throw new IllegalStateException("Archivio non disponibile."); }
+    public TrackStore(Context ctx) { dir = new File(ctx.getFilesDir(), "tracks"); if (!dir.exists() && !dir.mkdirs()) throw new IllegalStateException("Library unavailable."); }
     private File file(String id) {
-        if (!id.matches("[a-fA-F0-9-]{36}")) throw new IllegalArgumentException("Identificativo traccia non valido.");
+        if (!id.matches("[a-fA-F0-9-]{36}")) throw new IllegalArgumentException("Invalid track ID.");
         return new File(dir, id + ".json");
     }
     public void save(Track track) throws Exception { synchronized (LOCK) {
@@ -31,7 +31,7 @@ public final class TrackStore {
     } }
     // Reload under the same lock so metadata edits never replace a newer route or settings snapshot.
     public Track updatePlayback(String id, PlaybackSettings playback) throws Exception { synchronized (LOCK) {
-        if (playback == null) throw new IllegalArgumentException("Impostazioni mancanti.");
+        if (playback == null) throw new IllegalArgumentException("Missing settings.");
         Track latest = load(id); latest.playback = playback; save(latest); return latest;
     } }
     public Track rename(String id, String name) throws Exception { synchronized (LOCK) {

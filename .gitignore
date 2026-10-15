@@ -8,3 +8,10 @@ local.properties
 .signing/
 .idea/
 *.iml
+
+.claude/
+output/
+*.apk
+*.apk.sha256
+.scoutsolutions-build.sh
+dist/

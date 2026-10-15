@@ -51,7 +51,7 @@ public class MockSessionTest {
     @Test public void persistentFailureStopsAfterThreeAttempts() throws Exception {
         Fake backend = new Fake("google", new ArrayList<>()); MockSession session = new MockSession(backend); session.start(); backend.sendError = new Exception("offline");
         assertFalse(session.send(fix(1))); assertFalse(session.send(fix(2)));
-        try { session.send(fix(3)); fail(); } catch (IllegalStateException expected) { assertTrue(expected.getMessage().contains("tre volte")); }
+        try { session.send(fix(3)); fail(); } catch (IllegalStateException expected) { assertTrue(expected.getMessage().contains("three times")); }
         assertEquals(0, session.lastSentNanos());
     }
     @Test public void successfulDeliveryResetsFailureBudget() throws Exception {

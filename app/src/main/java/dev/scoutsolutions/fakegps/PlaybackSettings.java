@@ -9,11 +9,11 @@ public final class PlaybackSettings {
     public final double baseKmh, minKmh, maxKmh;
 
     public PlaybackSettings(String profile, double baseKmh, double minKmh, double maxKmh, String end) {
-        if (!WALK.equals(profile) && !BIKE.equals(profile) && !MOTO.equals(profile) && !CAR.equals(profile) && !CUSTOM.equals(profile)) throw new IllegalArgumentException("Profilo di velocità non valido.");
-        if (!"hold".equals(end) && !"stop".equals(end) && !"loop".equals(end)) throw new IllegalArgumentException("Comportamento all’arrivo non valido.");
-        if (!valid(baseKmh) || !valid(minKmh) || !valid(maxKmh)) throw new IllegalArgumentException("Le velocità devono essere comprese tra 0 e 300 km/h.");
-        if (minKmh > baseKmh || baseKmh > maxKmh) throw new IllegalArgumentException("La velocità di riferimento deve essere compresa tra minimo e massimo.");
-        if (baseKmh == 0 ? maxKmh != 0 : minKmh == maxKmh) throw new IllegalArgumentException("Per oscillare, il minimo deve essere inferiore al massimo. Per restare fermo imposta tutti i valori a zero.");
+        if (!WALK.equals(profile) && !BIKE.equals(profile) && !MOTO.equals(profile) && !CAR.equals(profile) && !CUSTOM.equals(profile)) throw new IllegalArgumentException("Invalid speed profile.");
+        if (!"hold".equals(end) && !"stop".equals(end) && !"loop".equals(end)) throw new IllegalArgumentException("Invalid arrival behavior.");
+        if (!valid(baseKmh) || !valid(minKmh) || !valid(maxKmh)) throw new IllegalArgumentException("Speeds must be between 0 and 300 km/h.");
+        if (minKmh > baseKmh || baseKmh > maxKmh) throw new IllegalArgumentException("The reference speed must be between the minimum and maximum.");
+        if (baseKmh == 0 ? maxKmh != 0 : minKmh == maxKmh) throw new IllegalArgumentException("For speed variation, the minimum must be below the maximum. Set all values to zero to stay still.");
         this.profile = profile; this.baseKmh = baseKmh; this.minKmh = minKmh; this.maxKmh = maxKmh; this.end = end;
     }
     private static boolean valid(double value) { return Double.isFinite(value) && value >= 0 && value <= 300; }
@@ -24,7 +24,7 @@ public final class PlaybackSettings {
             case MOTO: return new PlaybackSettings(profile, 50, 45, 55, "hold");
             case CAR: return new PlaybackSettings(profile, 70, 63, 77, "hold");
             case CUSTOM: return custom(30, "hold");
-            default: throw new IllegalArgumentException("Profilo di velocità non valido.");
+            default: throw new IllegalArgumentException("Invalid speed profile.");
         }
     }
     public static PlaybackSettings custom(double base, String end) {
@@ -33,7 +33,7 @@ public final class PlaybackSettings {
     public PlaybackSettings withEnd(String value) { return new PlaybackSettings(profile, baseKmh, minKmh, maxKmh, value); }
     public PlaybackSettings withRange(double min, double max) { return new PlaybackSettings(profile, baseKmh, min, max, end); }
     public String label() {
-        switch (profile) { case WALK: return "A piedi"; case BIKE: return "Bici"; case MOTO: return "Moto"; case CAR: return "Auto"; default: return "Personalizzata"; }
+        switch (profile) { case WALK: return "Walking"; case BIKE: return "Cycling"; case MOTO: return "Motorcycle"; case CAR: return "Driving"; default: return "Custom"; }
     }
     public double accelerationKmhPerSecond() {
         switch (profile) { case WALK: return 1.5; case BIKE: return 2; case MOTO: case CAR: return 4; default: return Math.max(1.5, Math.min(4, baseKmh / 10)); }
@@ -42,7 +42,7 @@ public final class PlaybackSettings {
         return new JSONObject().put("schema", 1).put("profile", profile).put("baseKmh", baseKmh).put("minKmh", minKmh).put("maxKmh", maxKmh).put("end", end);
     }
     public static PlaybackSettings fromJson(JSONObject obj) throws Exception {
-        if (obj.optInt("schema", 1) != 1) throw new IllegalArgumentException("Versione delle impostazioni non supportata.");
+        if (obj.optInt("schema", 1) != 1) throw new IllegalArgumentException("Unsupported settings version.");
         return new PlaybackSettings(obj.getString("profile"), obj.getDouble("baseKmh"), obj.getDouble("minKmh"), obj.getDouble("maxKmh"), obj.getString("end"));
     }
 }

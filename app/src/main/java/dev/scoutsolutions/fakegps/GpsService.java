@@ -26,7 +26,7 @@ public final class GpsService extends Service implements LocationListener {
         }
         public boolean active() { return !mode.isEmpty(); }
     }
-    public static volatile State state = new State("", "Pronto a partire", "", "", null, 0, 0, 0, 0, false, false, false, 0, "", "", 0);
+    public static volatile State state = new State("", "Ready to go", "", "", null, 0, 0, 0, 0, false, false, false, 0, "", "", 0);
     private HandlerThread thread;
     private Handler worker;
     private LocationManager locations;
@@ -47,8 +47,8 @@ public final class GpsService extends Service implements LocationListener {
     @Override public void onCreate() {
         super.onCreate(); locations = (LocationManager)getSystemService(LOCATION_SERVICE);
         thread = new HandlerThread("anomaly-gps"); thread.start(); worker = new Handler(thread.getLooper());
-        NotificationChannel channel = new NotificationChannel("gps", "Sessione GPS", NotificationManager.IMPORTANCE_LOW);
-        channel.setDescription("Controlli della simulazione e della registrazione attiva");
+        NotificationChannel channel = new NotificationChannel("gps", "GPS session", NotificationManager.IMPORTANCE_LOW);
+        channel.setDescription("Controls for the active simulation and recording");
         getSystemService(NotificationManager.class).createNotificationChannel(channel);
     }
     @Override public IBinder onBind(Intent intent) { return null; }
@@ -57,41 +57,41 @@ public final class GpsService extends Service implements LocationListener {
         String action = intent.getAction();
         if (STATIC.equals(action) || ROUTE.equals(action) || RECORD.equals(action)) {
             if (state.active()) return START_NOT_STICKY;
-            try { startForeground(NOTIFICATION_ID, notification("Preparazione sessione…")); }
-            catch (Exception e) { state = new State("", "Avvio non riuscito", "Abilita GPS e permesso di posizione precisa, poi riprova dall’app aperta.", "", null, 0, 0, 0, 0, false, false, false, 0, "", "", 0); stopSelf(); return START_NOT_STICKY; }
+            try { startForeground(NOTIFICATION_ID, notification("Preparing session…")); }
+            catch (Exception e) { state = new State("", "Unable to start", "Enable GPS and precise location permission, then try again with the app open.", "", null, 0, 0, 0, 0, false, false, false, 0, "", "", 0); stopSelf(); return START_NOT_STICKY; }
         }
         worker.post(() -> {
             try {
-                if (STOP.equals(action)) finish("Sessione terminata", "");
+                if (STOP.equals(action)) finish("Session ended", "");
                 else if (PAUSE.equals(action) && ROUTE.equals(mode) && !finishing && !holding) {
                     paused = !paused; lastTick = SystemClock.elapsedRealtime();
                     speed = 0;
                     if (paused) speedDynamics.resetStandstill();
                     if (RECORD.equals(mode)) lastRealFix = 0;
-                    publish(paused ? "In pausa" : RECORD.equals(mode) ? "Registrazione GPS reale" : "Simulazione in corso", "");
+                    publish(paused ? "Paused" : RECORD.equals(mode) ? "Recording real GPS" : "Simulation running", "");
                 } else if (SPEED.equals(action) && ROUTE.equals(mode) && !finishing && track.id.equals(intent.getStringExtra("id"))) {
                     PlaybackSettings settings = new TrackStore(this).load(track.id).playback;
-                    if (settings == null) throw new IllegalArgumentException("Salva prima le impostazioni del percorso.");
+                    if (settings == null) throw new IllegalArgumentException("Save the route settings first.");
                     track.playback = settings; speedDynamics.configure(settings);
                     lastTick = SystemClock.elapsedRealtime(); publish(statusMessage, "");
                 } else if (STATIC.equals(action) || ROUTE.equals(action) || RECORD.equals(action)) startSession(action, intent);
-            } catch (Exception e) { finish("Sessione interrotta", friendly(e)); }
+            } catch (Exception e) { finish("Session interrupted", friendly(e)); }
         });
         return START_NOT_STICKY;
     }
     @SuppressLint({"MissingPermission", "WakelockTimeout"})
     private void startSession(String action, Intent intent) throws Exception {
         if (!mode.isEmpty() || finishing) return;
-        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) throw new SecurityException("Permesso di posizione precisa necessario.");
-        if (!locations.isProviderEnabled(LocationManager.GPS_PROVIDER)) throw new IllegalStateException("Attiva la posizione GPS nelle impostazioni Android.");
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) throw new SecurityException("Precise location permission is required.");
+        if (!locations.isProviderEnabled(LocationManager.GPS_PROVIDER)) throw new IllegalStateException("Enable GPS location in Android settings.");
         mode = action; paused = false; holding = false; deliveryPending = false; started = lastTick = SystemClock.elapsedRealtime(); activeMillis = 0; recordedDistance = 0; lastRealFix = 0; lastSave = started;
-        publish("Preparazione sessione…", "");
+        publish("Preparing session…", "");
         speed = 0; end = "hold";
         if (RECORD.equals(mode)) {
-            backend = "GPS reale";
-            track = new Track(intent.getStringExtra("name") == null ? "Tragitto registrato" : intent.getStringExtra("name"), "GPS reale · registrazione");
+            backend = "Real GPS";
+            track = new Track(intent.getStringExtra("name") == null ? "Recorded trip" : intent.getStringExtra("name"), "Real GPS · recording");
             locations.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, this, worker.getLooper());
-            publish("In attesa di un segnale GPS reale…", "");
+            publish("Waiting for a real GPS signal…", "");
         } else {
             if (ROUTE.equals(mode)) {
                 track = new TrackStore(this).load(intent.getStringExtra("id")); engine = new RouteEngine(track.points); position = engine.position();
@@ -101,11 +101,11 @@ public final class GpsService extends Service implements LocationListener {
             else position = new GeoPoint(intent.getDoubleExtra("lat", Double.NaN), intent.getDoubleExtra("lon", Double.NaN), intent.getDoubleExtra("alt", 0), 0);
             int availability = AndroidMockBackend.googleAvailability(this);
             boolean google = AndroidMockBackend.hasGoogle(availability);
-            backend = google ? "GPS Android + Google Play Services" : "GPS Android · Google Play Services non disponibile (" + availability + ")";
+            backend = google ? "Android GPS + Google Play Services" : "Android GPS · Google Play Services unavailable (" + availability + ")";
             AndroidMockBackend.Platform platform = new AndroidMockBackend.Platform(locations, !google);
             mockSession = google ? new MockSession(platform, new AndroidMockBackend.Google(this)) : new MockSession(platform);
             mockSession.start();
-            sendMock(0, 0); publish(STATIC.equals(mode) ? "Posizione fissa attiva" : "Simulazione in corso", "");
+            sendMock(0, 0); publish(STATIC.equals(mode) ? "Fixed location active" : "Simulation running", "");
         }
         // Connection setup time must not advance a route before its first fix.
         lastTick = SystemClock.elapsedRealtime();
@@ -118,11 +118,11 @@ public final class GpsService extends Service implements LocationListener {
             if (mode.isEmpty() || finishing) return;
             try {
                 long now = SystemClock.elapsedRealtime(); double seconds = (now - lastTick) / 1000.0; lastTick = now;
-                if (now - started >= 12 * 60 * 60 * 1000L) { finish("Sessione terminata dopo 12 ore", ""); return; }
+                if (now - started >= 12 * 60 * 60 * 1000L) { finish("Session ended after 12 hours", ""); return; }
                 if (!paused && !holding && !deliveryPending) activeMillis += Math.round(seconds * 1000);
                 if (RECORD.equals(mode)) {
                     if (now - lastSave >= 10000 && track.points.size() >= 2) { new TrackStore(GpsService.this).save(track); lastSave = now; }
-                    if (!paused && lastRealFix > 0 && now - lastRealFix > 10000) statusMessage = "Segnale GPS perso · in attesa…";
+                    if (!paused && lastRealFix > 0 && now - lastRealFix > 10000) statusMessage = "GPS signal lost · waiting…";
                     publish(statusMessage, "");
                 } else {
                     if (engine != null && !paused && !holding && !deliveryPending) {
@@ -132,8 +132,8 @@ public final class GpsService extends Service implements LocationListener {
                     if (engine != null && engine.finished() && !holding) {
                         if ("stop".equals(end)) {
                             sendMock(0, engine.bearing());
-                            if (!deliveryPending) { finish("Percorso completato · GPS reale ripristinato", ""); return; }
-                            publish("Arrivato · attesa conferma ultimo invio", "");
+                            if (!deliveryPending) { finish("Route completed · real GPS restored", ""); return; }
+                            publish("Arrived · waiting for final delivery confirmation", "");
                             worker.postDelayed(this, 500); return;
                         }
                         if ("loop".equals(end)) { engine.restart(); position = engine.position(); }
@@ -141,10 +141,10 @@ public final class GpsService extends Service implements LocationListener {
                     }
                     if (paused || holding) speed = 0;
                     sendMock(engine != null && !paused && !holding ? (float)(speed / 3.6) : 0, engine != null ? engine.bearing() : 0);
-                    publish(holding ? "Arrivato · fermo alla destinazione" : paused ? "In pausa · posizione mantenuta" : STATIC.equals(mode) ? "Posizione fissa attiva" : "Simulazione in corso", "");
+                    publish(holding ? "Arrived · holding at destination" : paused ? "Paused · holding position" : STATIC.equals(mode) ? "Fixed location active" : "Simulation running", "");
                 }
                 worker.postDelayed(this, 500);
-            } catch (Exception e) { finish("Sessione interrotta", friendly(e)); }
+            } catch (Exception e) { finish("Session interrupted", friendly(e)); }
         }
     };
     private void sendMock(float metersPerSecond, float bearing) throws Exception {
@@ -155,19 +155,19 @@ public final class GpsService extends Service implements LocationListener {
     }
     @Override public void onLocationChanged(Location location) {
         if (!RECORD.equals(mode) || paused || finishing) return;
-        if (location.isFromMockProvider()) { publish("Posizione simulata rilevata: disattiva le altre app GPS fake.", ""); return; }
+        if (location.isFromMockProvider()) { publish("Mock location detected: turn off other fake GPS apps.", ""); return; }
         if (!location.hasAccuracy() || location.getAccuracy() > 50 || SystemClock.elapsedRealtimeNanos() - location.getElapsedRealtimeNanos() > 10000000000L) return;
         GeoPoint p = new GeoPoint(location.getLatitude(), location.getLongitude(), location.hasAltitude() ? location.getAltitude() : 0, location.getTime());
-        if (track.points.size() >= 100000) { finish("Limite di 100.000 punti raggiunto · traccia salvata", ""); return; }
+        if (track.points.size() >= 100000) { finish("100,000-point limit reached · track saved", ""); return; }
         if (!track.points.isEmpty()) {
             GeoPoint last = track.points.get(track.points.size()-1); double d = last.distanceTo(p);
-            if (d < 2) { position = p; lastRealFix = SystemClock.elapsedRealtime(); publish("Registrazione GPS reale", ""); return; }
+            if (d < 2) { position = p; lastRealFix = SystemClock.elapsedRealtime(); publish("Recording real GPS", ""); return; }
             recordedDistance += d;
         }
         track.points.add(p); position = p; lastRealFix = SystemClock.elapsedRealtime();
-        publish("Registrazione GPS reale · precisione " + Math.round(location.getAccuracy()) + " m", "");
+        publish("Recording real GPS · accuracy " + Math.round(location.getAccuracy()) + " m", "");
     }
-    @Override public void onProviderDisabled(String provider) { if (RECORD.equals(mode)) publish("GPS disattivato · riattiva la posizione", ""); }
+    @Override public void onProviderDisabled(String provider) { if (RECORD.equals(mode)) publish("GPS disabled · enable location again", ""); }
     @Override public void onProviderEnabled(String provider) { }
     @Override public void onStatusChanged(String provider, int status, Bundle extras) { }
     private void publish(String message, String error) {
@@ -184,11 +184,11 @@ public final class GpsService extends Service implements LocationListener {
     private void finish(String message, String error) {
         if (finishing) return; finishing = true; worker.removeCallbacks(tick);
         String cleanupError = cleanupGps();
-        if (!cleanupError.isEmpty()) error += (error.isEmpty() ? "" : "\n") + "Ripristino GPS non confermato: " + cleanupError + ". Controlla la posizione prima di registrare.";
+        if (!cleanupError.isEmpty()) error += (error.isEmpty() ? "" : "\n") + "GPS restoration not confirmed: " + cleanupError + ". Check your location before recording.";
         if (RECORD.equals(mode) && track != null && track.points.size() >= 2) {
-            try { new TrackStore(this).save(track); message += " · traccia salvata"; }
-            catch (Exception e) { error = "Salvataggio non riuscito: " + e.getMessage(); }
-        } else if (RECORD.equals(mode)) message += " · nessuna traccia salvata (meno di due punti)";
+            try { new TrackStore(this).save(track); message += " · track saved"; }
+            catch (Exception e) { error = "Unable to save: " + e.getMessage(); }
+        } else if (RECORD.equals(mode)) message += " · no track saved (fewer than two points)";
         String id = track == null ? "" : track.id;
         state = new State("", message, error, id, position, engine == null ? recordedDistance : engine.travelled(), engine == null ? 0 : engine.total(), 0, activeMillis, false, holding, false, track == null ? 0 : track.points.size(), backend, "", mockSession == null ? 0 : mockSession.lastSentNanos());
         mode = ""; stopForeground(STOP_FOREGROUND_REMOVE); stopSelf();
@@ -201,18 +201,18 @@ public final class GpsService extends Service implements LocationListener {
         return error;
     }
     private static String friendly(Exception e) {
-        String message = e instanceof SecurityException ? "Consenti la posizione precisa e seleziona Anomaly GPS in Opzioni sviluppatore → App di posizione simulata." : e.getMessage() == null ? "Errore GPS. Controlla le impostazioni Android." : e.getMessage();
-        for (Throwable suppressed : e.getSuppressed()) message += "\nRipristino GPS non confermato: " + suppressed.getMessage();
+        String message = e instanceof SecurityException ? "Allow precise location and select Anomaly GPS in Developer options → Select mock location app." : e.getMessage() == null ? "GPS error. Check Android settings." : e.getMessage();
+        for (Throwable suppressed : e.getSuppressed()) message += "\nGPS restoration not confirmed: " + suppressed.getMessage();
         return message;
     }
     private Notification notification(String text) {
         PendingIntent open = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         PendingIntent stop = PendingIntent.getService(this, 1, new Intent(this, GpsService.class).setAction(STOP), PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         return new Notification.Builder(this, "gps").setSmallIcon(R.drawable.ic_notification).setContentTitle("Anomaly GPS").setContentText(text)
-            .setContentIntent(open).setOngoing(true).setOnlyAlertOnce(true).addAction(new Notification.Action.Builder(null, "Termina", stop).build()).build();
+            .setContentIntent(open).setOngoing(true).setOnlyAlertOnce(true).addAction(new Notification.Action.Builder(null, "Stop", stop).build()).build();
     }
     @Override public void onDestroy() {
-        worker.post(() -> { if (!mode.isEmpty() && !finishing) finish("Sessione terminata dal sistema", ""); else cleanupGps(); });
+        worker.post(() -> { if (!mode.isEmpty() && !finishing) finish("Session ended by the system", ""); else cleanupGps(); });
         thread.quitSafely(); super.onDestroy();
     }
 }

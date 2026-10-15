@@ -10,21 +10,21 @@ public final class RouteEngine {
     private final double[] cumulative;
     private double travelled;
     public RouteEngine(List<GeoPoint> input) {
-        if (input == null || input.size() < 2) throw new IllegalArgumentException("Servono almeno due punti per simulare un percorso.");
+        if (input == null || input.size() < 2) throw new IllegalArgumentException("At least two points are required to simulate a route.");
         points = Collections.unmodifiableList(new ArrayList<>(input));
         cumulative = new double[points.size()];
         for (int i = 1; i < points.size(); i++) cumulative[i] = cumulative[i - 1] + points.get(i - 1).distanceTo(points.get(i));
-        if (total() < 0.5) throw new IllegalArgumentException("Il percorso è troppo corto.");
+        if (total() < 0.5) throw new IllegalArgumentException("The route is too short.");
     }
     public double total() { return cumulative[cumulative.length - 1]; }
     public double travelled() { return travelled; }
     public boolean finished() { return travelled >= total(); }
     public void advance(double seconds, double kmh) {
-        if (!Double.isFinite(seconds) || !Double.isFinite(kmh) || seconds < 0 || kmh < 0) throw new IllegalArgumentException("Tempo o velocità non validi.");
+        if (!Double.isFinite(seconds) || !Double.isFinite(kmh) || seconds < 0 || kmh < 0) throw new IllegalArgumentException("Invalid time or speed.");
         advanceMeters(seconds * kmh / 3.6);
     }
     public void advanceMeters(double meters) {
-        if (!Double.isFinite(meters) || meters < 0) throw new IllegalArgumentException("Distanza non valida.");
+        if (!Double.isFinite(meters) || meters < 0) throw new IllegalArgumentException("Invalid distance.");
         travelled = Math.min(total(), travelled + meters);
     }
     public void restart() { travelled = 0; }

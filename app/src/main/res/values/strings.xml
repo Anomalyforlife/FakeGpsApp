@@ -1,4 +1,4 @@
 <resources>
-    <string name="routing_car">Auto · strade carrabili</string>
-    <string name="routing_foot">A piedi · percorsi pedonali</string>
+    <string name="routing_car">Driving · roads</string>
+    <string name="routing_foot">Walking · pedestrian paths</string>
 </resources>

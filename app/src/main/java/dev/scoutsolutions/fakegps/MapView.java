@@ -37,7 +37,7 @@ public final class MapView extends View {
             private float accumulated = 1;
             @Override public boolean onScale(ScaleGestureDetector d) { accumulated *= d.getScaleFactor(); if (accumulated > 1.5) { zoom(1); accumulated = 1; } else if (accumulated < .67) { zoom(-1); accumulated = 1; } return true; }
         });
-        setContentDescription("Mappa OpenStreetMap. Trascina per spostarti, pizzica per lo zoom, tocca per scegliere una posizione.");
+        setContentDescription("OpenStreetMap map. Drag to pan, pinch to zoom, tap to choose a location.");
     }
     public void center(GeoPoint p) { centerX = x(p.lon); centerY = y(p.lat); invalidate(); }
     public void marker(GeoPoint p) { marker = p; invalidate(); }
@@ -78,7 +78,7 @@ public final class MapView extends View {
             paint.setColor(Color.rgb(12,20,27)); canvas.drawCircle(px,py,11,paint); paint.setColor(Color.rgb(128,243,194)); canvas.drawCircle(px,py,7,paint);
         }
         paint.setTextSize(11*getResources().getDisplayMetrics().scaledDensity); paint.setColor(0xD00C141B); canvas.drawRect(0,getHeight()-27*getResources().getDisplayMetrics().density,getWidth(),getHeight(),paint);
-        paint.setColor(Color.WHITE); canvas.drawText("© OpenStreetMap contributors  ·  mappa online",10,getHeight()-10,paint);
+        paint.setColor(Color.WHITE); canvas.drawText("© OpenStreetMap contributors  ·  online map",10,getHeight()-10,paint);
     }
     private void drawDot(Canvas c, GeoPoint p,int color,int radius) { paint.setColor(0xFF0C141B); c.drawCircle(screenX(p),screenY(p),radius+3,paint); paint.setColor(color); c.drawCircle(screenX(p),screenY(p),radius,paint); }
     private void load(String key,int z,int tx,int ty) {
@@ -97,7 +97,7 @@ public final class MapView extends View {
                     else if (status==200) {
                         byte[] data;
                         try (InputStream in=connection.getInputStream(); ByteArrayOutputStream out=new ByteArrayOutputStream()) {
-                            byte[] buffer=new byte[4096]; int n; while ((n=in.read(buffer))!=-1) { if (out.size()+n>1024*1024) throw new IOException("Tile troppo grande"); out.write(buffer,0,n); } data=out.toByteArray();
+                            byte[] buffer=new byte[4096]; int n; while ((n=in.read(buffer))!=-1) { if (out.size()+n>1024*1024) throw new IOException("Map tile too large"); out.write(buffer,0,n); } data=out.toByteArray();
                         }
                         bitmap=BitmapFactory.decodeByteArray(data,0,data.length);
                         if (bitmap!=null) { trimCache(); try(FileOutputStream out=new FileOutputStream(file)) { out.write(data); } }

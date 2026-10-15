@@ -12,12 +12,12 @@ public final class SpeedDynamics {
     private PlaybackSettings settings;
     private double current, from, target, duration, phase;
     public SpeedDynamics(PlaybackSettings settings, Random random) {
-        if (settings == null || random == null) throw new IllegalArgumentException("Impostazioni mancanti.");
+        if (settings == null || random == null) throw new IllegalArgumentException("Missing settings.");
         this.random = random; this.settings = settings; resetStandstill();
     }
     public double speedKmh() { return current; }
     public void configure(PlaybackSettings next) {
-        if (next == null) throw new IllegalArgumentException("Impostazioni mancanti.");
+        if (next == null) throw new IllegalArgumentException("Missing settings.");
         settings = next; transitionTo(next.baseKmh);
     }
     public void resetStandstill() { current = 0; transitionTo(settings.baseKmh); }
@@ -42,7 +42,7 @@ public final class SpeedDynamics {
     private static double easing(double u) { return u * u * (3 - 2 * u); }
     private static double integral(double u) { return u * u * u - .5 * u * u * u * u; }
     public Step advance(double seconds) {
-        if (!Double.isFinite(seconds) || seconds < 0 || seconds > 43200) throw new IllegalArgumentException("Intervallo di tempo non valido.");
+        if (!Double.isFinite(seconds) || seconds < 0 || seconds > 43200) throw new IllegalArgumentException("Invalid time interval.");
         if (settings.maxKmh == 0 && current == 0) return new Step(0, 0);
         double remaining = seconds, kmhSeconds = 0;
         while (remaining > 0) {

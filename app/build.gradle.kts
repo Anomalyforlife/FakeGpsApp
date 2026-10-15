@@ -15,7 +15,13 @@ android {
         // AGP generates a missing key only at its default path. Keep that path on the first build.
         if (persistentDebugKey.exists()) storeFile = persistentDebugKey
     }
-    buildTypes { release { isMinifyEnabled = false } }
+    buildTypes {
+        release {
+            isMinifyEnabled = false
+            // Preserve compatibility with the APKs already distributed to users.
+            if (persistentDebugKey.exists()) signingConfig = signingConfigs.getByName("debug")
+        }
+    }
     lint { abortOnError = true }
 }
 dependencies {

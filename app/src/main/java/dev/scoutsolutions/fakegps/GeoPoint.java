@@ -6,7 +6,7 @@ public final class GeoPoint {
     public GeoPoint(double lat, double lon) { this(lat, lon, 0, 0); }
     public GeoPoint(double lat, double lon, double altitude, long time) {
         if (!Double.isFinite(lat) || !Double.isFinite(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180 || !Double.isFinite(altitude))
-            throw new IllegalArgumentException("Coordinate non valide: latitudine −90…90, longitudine −180…180.");
+            throw new IllegalArgumentException("Invalid coordinates: latitude −90…90, longitude −180…180.");
         this.lat = lat; this.lon = lon; this.altitude = altitude; this.time = time;
     }
     public double distanceTo(GeoPoint other) {

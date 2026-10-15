@@ -6,7 +6,7 @@ import static org.junit.Assert.*;
 
 public class TrackSettingsTest {
     private Track track() {
-        Track t = new Track("Test percorso", "GPX"); t.points.add(new GeoPoint(45, 9, 30, 1234)); t.points.add(new GeoPoint(45.001, 9.002, 40, 5678)); return t;
+        Track t = new Track("Test route", "GPX"); t.points.add(new GeoPoint(45, 9, 30, 1234)); t.points.add(new GeoPoint(45.001, 9.002, 40, 5678)); return t;
     }
     private Track reload(Track t) throws Exception { return Track.fromJson(new JSONObject(t.json().toString())); }
     @Test public void newTracksHaveWalkingDefaults() { assertEquals(PlaybackSettings.WALK, track().playback.profile); }
@@ -32,7 +32,7 @@ public class TrackSettingsTest {
         assertEquals(7.5, reload(restoredA).playback.baseKmh, 0);
     }
     @Test public void renamingDoesNotRemoveSpeedSettings() throws Exception {
-        Track a = track(); a.playback = PlaybackSettings.preset("bike").withRange(12, 25).withEnd("stop"); a = reload(a); a.name = "Nuovo nome"; a = reload(a);
-        assertEquals("Nuovo nome", a.name); assertEquals("bike", a.playback.profile); assertEquals(12, a.playback.minKmh, 0); assertEquals(25, a.playback.maxKmh, 0); assertEquals("stop", a.playback.end);
+        Track a = track(); a.playback = PlaybackSettings.preset("bike").withRange(12, 25).withEnd("stop"); a = reload(a); a.name = "New name"; a = reload(a);
+        assertEquals("New name", a.name); assertEquals("bike", a.playback.profile); assertEquals(12, a.playback.minKmh, 0); assertEquals(25, a.playback.maxKmh, 0); assertEquals("stop", a.playback.end);
     }
 }

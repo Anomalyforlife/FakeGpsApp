@@ -24,7 +24,7 @@ public final class Track {
         return result;
     }
     public static Track fromJson(JSONObject obj) throws Exception {
-        Track t = new Track(obj.getString("name"), obj.optString("source", "Traccia"));
+        Track t = new Track(obj.getString("name"), obj.optString("source", "Track"));
         t.id = obj.getString("id"); t.created = obj.getLong("created");
         t.routingProfile = RoutingProfile.fromId(obj.optString("routingProfile", ""));
         // Legacy tracks keep their geometry and can inherit the last pre-1.2 UI speed once.
@@ -34,7 +34,7 @@ public final class Track {
             catch (Exception invalidSettings) { /* Do not make an otherwise valid saved track unreadable. */ }
         }
         JSONArray list = obj.getJSONArray("points");
-        if (list.length() > 100000) throw new IllegalArgumentException("Massimo 100.000 punti per traccia.");
+        if (list.length() > 100000) throw new IllegalArgumentException("Maximum 100,000 points per track.");
         for (int i = 0; i < list.length(); i++) { JSONArray p = list.getJSONArray(i); t.points.add(new GeoPoint(p.getDouble(0), p.getDouble(1), p.optDouble(2, 0), p.optLong(3, 0))); }
         return t;
     }
